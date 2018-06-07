@@ -1,14 +1,8 @@
-
-# coding: utf-8
-
-# In[4]:
-
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 import base64
 from datetime import datetime
-import os
 import shutil
 import numpy as np
 import socketio 
@@ -17,28 +11,37 @@ import eventlet.wsgi
 from PIL import Image
 from flask import Flask
 from io import BytesIO
-
-from keras.models import load_model
-
 import utils
+from keras.models import load_model
+import argparse
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
-# In[5]:
+parser = argparse.ArgumentParser()
+parser.add_argument('--ip', type=str,
+                    help='Enter IP address for socket', default = '0.0.0.0')
+parser.add_argument('--min_speed', type=int,
+                    help='Enter Minimum Speed of Car', default = 10)
+parser.add_argument('--max_speed', type=int,
+                    help='Enter Maximum Speed of Car', default = 25)
+parser.add_argument('--path', type=str,
+                    help='Enter path to saved model file', default = './model.h5')
 
 
-model = load_model('./model.h5')
+args = parser.parse_args()
 
+path = args.path
+ip = args.ip
+MAX_SPEED = args.max_speed
+MIN_SPEED = args.min_speed
+speed_limit = MAX_SPEED
 
-# In[6]:
+model = load_model(path)
 
 
 sio = socketio.Server()
 app = Flask(__name__)
-MAX_SPEED = 25
-MIN_SPEED = 10
-speed_limit = MAX_SPEED
-
-# In[7]:
 
 
 def send_control(steering_angle, throttle):
@@ -49,10 +52,6 @@ def send_control(steering_angle, throttle):
             'throttle': throttle.__str__()
         },
         skip_sid=True)
-
-
-# In[8]:
-
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -96,9 +95,7 @@ def telemetry(sid, data):
         sio.emit('manual', data={}, skip_sid=True)
     
 
-# In[9]:
-
 
 app = socketio.Middleware(sio, app)
-eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 4567)), app)
+eventlet.wsgi.server(eventlet.listen((ip, 4567)), app)
 
