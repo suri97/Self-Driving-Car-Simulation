@@ -1,5 +1,5 @@
 # Simulate a Self-Driving-Car
-Using the technique of "Behavioral Cloning" training a car to drive itself on a track in Unity3D simulation
+Using the technique of "Behavioral Cloning" train a car to drive itself on a track in Unity3D simulation
 
 
 ## Usage
